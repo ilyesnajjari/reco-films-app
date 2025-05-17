@@ -23,3 +23,4 @@ spec:
 #minikube ip
 #minikube service movie-service
 #kubectl get pods
+
