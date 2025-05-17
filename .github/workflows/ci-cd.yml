@@ -49,7 +49,7 @@ jobs:
 
     - name: 🚀 Deploy to Kubernetes
       run: |
-        SERVICES=("postgres" "user-service" "movie-service" "rating-service" "frontend")
+        SERVICES=( "user-service" "movie-service" "rating-service" "frontend")
         for SERVICE in "${SERVICES[@]}"; do
           echo "📦 Applying deployment and service for $SERVICE"
           kubectl apply -f ./$SERVICE/deployment.yaml
