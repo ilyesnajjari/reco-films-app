@@ -81,19 +81,14 @@ Ils vérifient la création d’utilisateurs, de films, de notes, la mise à jou
 
 ---
 
-## ⚙️ CI/CD
+## ⚙️ CI
 
 Le pipeline GitHub Actions :
 
 - Build les images Docker de chaque service
-- Push sur Docker Hub
-- Déploie sur un cluster Kubernetes (Minikube ou cloud)
-- Vérifie la disponibilité des endpoints via `curl`
+- Exécute les tests d’intégration (pytest, httpx) pour valider le bon fonctionnement des APIs
 
-Secrets nécessaires :  
-- `DOCKERHUB_USERNAME`  
-- `DOCKERHUB_TOKEN`  
-- `KUBE_CONFIG_DATA` (kubeconfig encodé en base64)
+À chaque push ou pull request sur `main`, le pipeline vérifie que le projet se build et que les tests passent.
 
 ---
 
