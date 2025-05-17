@@ -31,7 +31,7 @@ jobs:
           elif [ -f "requirements.txt" ]; then
             echo "🐍 Python project detected"
             pip install -r requirements.txt
-            pip install pytest  # <--- Ajout ici
+            pip install pytest
             pytest || exit 1
           else
             echo "❓ Unknown project type in $SERVICE, skipping tests"
@@ -40,6 +40,13 @@ jobs:
           cd ..
         done
 
+    - name: 🧪 Run integration tests (test_api.py)
+      run: |
+        pip install -r user-service/requirements.txt
+        pip install -r movie-service/requirements.txt
+        pip install -r rating-service/requirements.txt
+        pip install pytest httpx
+        pytest test_api.py || exit 1
 
     - name: 🧱 Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
