@@ -1,22 +1,43 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
     branches:
-      - main  # Déclenchement du pipeline sur les pushes dans main
+      - main
 
 jobs:
-  build-and-deploy:
+  test-build-push:
     runs-on: ubuntu-latest
 
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
 
     steps:
     - name: ✅ Checkout code
       uses: actions/checkout@v3
+
+    - name: 🧪 Run unit tests
+      run: |
+        SERVICES=("user-service" "movie-service" "rating-service" "frontend")
+        for SERVICE in "${SERVICES[@]}"; do
+          echo "🔍 Running tests for $SERVICE"
+          cd $SERVICE
+
+          if [ -f "package.json" ]; then
+            echo "📦 Node.js project detected"
+            npm install
+            npm test || exit 1
+          elif [ -f "requirements.txt" ]; then
+            echo "🐍 Python project detected"
+            pip install -r requirements.txt
+            pytest || exit 1
+          else
+            echo "❓ Unknown project type in $SERVICE, skipping tests"
+          fi
+
+          cd ..
+        done
 
     - name: 🧱 Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -36,36 +57,3 @@ jobs:
           echo "📤 Pushing $SERVICE"
           docker push $DOCKER_USERNAME/$SERVICE:latest
         done
-
-    - name: 🧪 Set up kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'latest'
-
-    - name: ⚙️ Configure kubeconfig
-      run: |
-        mkdir -p $HOME/.kube
-        echo "${KUBE_CONFIG_DATA}" | base64 --decode > $HOME/.kube/config
-
-    - name: 🚀 Deploy to Kubernetes
-      run: |
-        SERVICES=( "user-service" "movie-service" "rating-service" "frontend")
-        for SERVICE in "${SERVICES[@]}"; do
-          echo "📦 Applying deployment and service for $SERVICE"
-          kubectl apply -f ./k8s/$SERVICE/deployment.yaml
-          kubectl apply -f ./k8s/$SERVICE/service.yaml
-        done
-
-    - name: ⏳ Wait for all pods to be ready
-      run: |
-        SERVICES=("user-service" "movie-service" "rating-service" "frontend")
-        for SERVICE in "${SERVICES[@]}"; do
-          echo "🕒 Waiting for pod $SERVICE to be ready..."
-          kubectl wait --for=condition=Ready pod -l app=$SERVICE --timeout=120s
-        done
-
-    - name: 🔍 Test user-service endpoint (optionnel)
-      run: |
-        kubectl port-forward svc/user-service 8002:8002 &
-        sleep 5
-        curl -f http://localhost:8002/users/ || exit 1
