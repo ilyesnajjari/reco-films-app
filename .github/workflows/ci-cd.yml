@@ -17,35 +17,15 @@ jobs:
     - name: ✅ Checkout code
       uses: actions/checkout@v3
 
-    - name: 🧪 Run unit tests
-      run: |
-        SERVICES=("user-service" "movie-service" "rating-service" "frontend")
-        for SERVICE in "${SERVICES[@]}"; do
-          echo "🔍 Running tests for $SERVICE"
-          cd $SERVICE
-
-          if [ -f "package.json" ]; then
-            echo "📦 Node.js project detected"
-            npm install
-            npm test || exit 1
-          elif [ -f "requirements.txt" ]; then
-            echo "🐍 Python project detected"
-            pip install -r requirements.txt
-            pip install pytest
-            pytest || exit 1
-          else
-            echo "❓ Unknown project type in $SERVICE, skipping tests"
-          fi
-
-          cd ..
-        done
-
     - name: 🧪 Run integration tests (test_api.py)
       run: |
+        echo "🐍 Installing all Python dependencies..."
         pip install -r user-service/requirements.txt
         pip install -r movie-service/requirements.txt
         pip install -r rating-service/requirements.txt
         pip install pytest httpx
+
+        echo "🚀 Running test_api.py..."
         pytest test_api.py || exit 1
 
     - name: 🧱 Set up Docker Buildx
