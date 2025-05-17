@@ -52,8 +52,8 @@ jobs:
         SERVICES=( "user-service" "movie-service" "rating-service" "frontend")
         for SERVICE in "${SERVICES[@]}"; do
           echo "📦 Applying deployment and service for $SERVICE"
-          kubectl apply -f ./$SERVICE/deployment.yaml
-          kubectl apply -f ./$SERVICE/service.yaml
+          kubectl apply -f ./k8s/$SERVICE/deployment.yaml
+          kubectl apply -f ./k8s/$SERVICE/service.yaml
         done
 
     - name: ⏳ Wait for all pods to be ready
