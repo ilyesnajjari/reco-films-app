@@ -3,66 +3,67 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main  # Ou ta branche principale
-
-env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+      - main  # Déclenchement du pipeline sur les pushes dans main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+
     steps:
-    - name: Checkout code
+    - name: ✅ Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Docker Buildx
+    - name: 🧱 Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Log in to Docker Hub
+    - name: 🔐 Log in to Docker Hub
       uses: docker/login-action@v2
       with:
-        username: ${{ env.DOCKER_USERNAME }}
-        password: ${{ env.DOCKER_PASSWORD }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push Docker images
+    - name: 🛠 Build and push Docker images
       run: |
         SERVICES=("user-service" "movie-service" "rating-service" "frontend")
         for SERVICE in "${SERVICES[@]}"; do
-          echo "Building $SERVICE"
+          echo "🚧 Building $SERVICE"
           docker build -t $DOCKER_USERNAME/$SERVICE:latest ./$SERVICE
+          echo "📤 Pushing $SERVICE"
           docker push $DOCKER_USERNAME/$SERVICE:latest
         done
 
-    - name: Setup kubectl
+    - name: 🧪 Set up kubectl
       uses: azure/setup-kubectl@v3
       with:
         version: 'latest'
 
-    - name: Configure kubeconfig
+    - name: ⚙️ Configure kubeconfig
       run: |
         echo "${KUBE_CONFIG_DATA}" | base64 --decode > $HOME/.kube/config
 
-    - name: Deploy to Kubernetes
+    - name: 🚀 Deploy to Kubernetes
       run: |
         SERVICES=("postgres" "user-service" "movie-service" "rating-service" "frontend")
         for SERVICE in "${SERVICES[@]}"; do
+          echo "📦 Applying deployment and service for $SERVICE"
           kubectl apply -f ./$SERVICE/deployment.yaml
           kubectl apply -f ./$SERVICE/service.yaml
         done
 
-    - name: Wait for pods to be ready
+    - name: ⏳ Wait for all pods to be ready
       run: |
         SERVICES=("postgres" "user-service" "movie-service" "rating-service" "frontend")
         for SERVICE in "${SERVICES[@]}"; do
-          echo "Waiting for pod $SERVICE to be ready..."
+          echo "🕒 Waiting for pod $SERVICE to be ready..."
           kubectl wait --for=condition=Ready pod -l app=$SERVICE --timeout=120s
         done
 
-    # Optionnel : test rapide des endpoints
-    - name: Test user-service endpoint
+    - name: 🔍 Test user-service endpoint (optionnel)
       run: |
         kubectl port-forward svc/user-service 8002:8002 &
         sleep 5
