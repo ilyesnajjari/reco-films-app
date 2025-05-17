@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic
+passlib[bcrypt]       # pour le hashage des mots de passe
+python-jose[cryptography]  # pour JWT si tu veux auth plus tard
+pydantic[email]

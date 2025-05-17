@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rating-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rating-service
+  template:
+    metadata:
+      labels:
+        app: rating-service
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z postgres 5432; do
+                echo "⏳ En attente de PostgreSQL..."
+                sleep 2
+              done
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://user:password@postgres:5432/filmdb"
+            - name: POSTGRES_USER
+              value: "user"
+            - name: POSTGRES_PASSWORD
+              value: "password"
+            - name: POSTGRES_DB
+              value: "filmdb"
+      containers:
+        - name: rating-service
+          image: ilyesnajjari/rating-service:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://user:password@postgres:5432/filmdb"
+            - name: USER_SERVICE_URL
+              value: "http://user-service:8000"
+            - name: MOVIE_SERVICE_URL
+              value: "http://movie-service:8000"

@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: filmdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "8002:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/filmdb
+
+  movie-service:
+    build: ./movie-service
+    ports:
+      - "8001:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/filmdb
+
+  rating-service:
+    build: ./rating-service
+    ports:
+      - "8003:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/filmdb
+      USER_SERVICE_URL: http://user-service:8000
+      MOVIE_SERVICE_URL: http://movie-service:8000
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8501:8501"
+    depends_on:
+      - user-service
+      - movie-service
+      - rating-service
+    environment:
+      USER_SERVICE_URL: http://user-service:8000
+      MOVIE_SERVICE_URL: http://movie-service:8000
+      RATING_SERVICE_URL: http://rating-service:8000
+    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+
+    
+
+volumes:
+  pgdata:
+
+
+
+#docker compose down -v
+#docker-compose up --build

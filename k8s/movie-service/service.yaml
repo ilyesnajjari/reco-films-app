@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: movie-service
+spec:
+  type: NodePort   # <- C'est ça la clé
+  selector:
+    app: movie-service
+  ports:
+    - protocol: TCP
+      port: 8000        # Port du container (FastAPI par exemple)
+      targetPort: 8000  # Port de l'application dans le pod
+      nodePort: 30080   # (optionnel) Port exposé sur Minikube
+
+
+
+#docker build -t ilyesnajjari/movie-service:latest . 
+#docker push ilyesnajjari/movie-service:latest
+#kubectl rollout restart deployment movie-service
+#kubectl apply -f movie-service.yaml
+#kubectl apply -f deployment.yaml                                                   
+#kubectl get svc movie-service
+#minikube ip
+#minikube service movie-service
+#kubectl get pods

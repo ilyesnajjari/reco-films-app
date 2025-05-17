@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: ['sh', '-c', 'until nc -z postgres 5432; do echo "⏳ En attente de PostgreSQL..."; sleep 2; done']
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://user:password@postgres:5432/filmdb"
+            - name: POSTGRES_USER
+              value: "user"
+            - name: POSTGRES_PASSWORD
+              value: "password"
+            - name: POSTGRES_DB
+              value: "filmdb"
+      containers:
+        - name: frontend
+          image: ilyesnajjari/frontend:latest
+          ports:
+            - containerPort: 8501
+          env:
+            - name: USER_SERVICE_URL
+              value: "http://user-service:8000"
+            - name: MOVIE_SERVICE_URL
+              value: "http://movie-service:8000"
+            - name: RATING_SERVICE_URL
+              value: "http://rating-service:8000"
+          args:
+            - streamlit
+            - run
+            - app.py
+            - --server.address=0.0.0.0
+            - --server.port=8501

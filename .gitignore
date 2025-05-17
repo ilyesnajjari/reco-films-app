@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pyd
+*.pyo
+*.pdb
+*.egg-info/
+*.egg
+*.env
+.env
+.venv/
+venv/
+ENV/
+env/
+.Python
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Test/coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Jupyter
+.ipynb_checkpoints
+
+# Docker
+**/pgdata/
+**/dbdata/
+docker-compose.override.yml
+
+# Kubernetes
+*.kube/
+k8s/*.yaml~
+
+# Secrets
+*.secret
+*.key
+*.pem
+
+# GitHub Actions
+.github/workflows/*.bak
+.github/workflows/*.tmp
+
+# Ignore kubeconfig if present
+kubeconfig
+
+# Ignore build artifacts
+build/
+dist/
+*.tar.gz
+
+# Ignore node_modules if frontend JS
+frontend/node_modules/
