@@ -58,7 +58,7 @@ jobs:
 
     - name: ⏳ Wait for all pods to be ready
       run: |
-        SERVICES=("postgres" "user-service" "movie-service" "rating-service" "frontend")
+        SERVICES=("user-service" "movie-service" "rating-service" "frontend")
         for SERVICE in "${SERVICES[@]}"; do
           echo "🕒 Waiting for pod $SERVICE to be ready..."
           kubectl wait --for=condition=Ready pod -l app=$SERVICE --timeout=120s
